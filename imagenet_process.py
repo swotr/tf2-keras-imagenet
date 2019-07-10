@@ -90,18 +90,22 @@ def _decode_and_random_crop(image_buffer, image_size):
 def _normalize_image_and_label(image, label):
     image -= tf.constant(MEAN_RGB, shape=[1, 1, 3], dtype=image.dtype)
     image /= tf.constant(STDDEV_RGB, shape=[1, 1, 3], dtype=image.dtype)
-    label = label - 1 # [1, 1000] --> [0, 999]
+    label -= 1 # [1, 1000] --> [0, 999]
     return image, label
 
-def preprocess_for_train(dataset, image_size):
+def preprocess_for_train(dataset, image_size, channels_first):
     image_buffer, label = _parse_function(dataset)
     image = _decode_and_random_crop(image_buffer, image_size)
     image = tf.image.random_flip_left_right(image)
     image, label = _normalize_image_and_label(image, label)
-    return image, label    
+    if channels_first is True:
+        image = tf.transpose(image, [2, 0, 1])
+    return image, label
 
-def preprocess_for_eval(dataset, image_size):
+def preprocess_for_eval(dataset, image_size, channels_first):
     image_buffer, label = _parse_function(dataset)
     image = _decode_and_center_crop(image_buffer, image_size)
     image, label = _normalize_image_and_label(image, label)
+    if channels_first is True:
+        image = tf.transpose(image, [2, 0, 1])
     return image, label

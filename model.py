@@ -3,11 +3,12 @@ from absl import flags
 
 import numpy as np
 import tensorflow as tf
-import keras.backend as K
-import keras.models as KM
-from keras.layers import *
-from keras.initializers import *
-from keras.utils.generic_utils import get_custom_objects
+import tensorflow.keras
+import tensorflow.keras.backend as K
+import tensorflow.keras.models as KM
+from tensorflow.keras.layers import *
+from tensorflow.keras.initializers import *
+from tensorflow.keras.utils import get_custom_objects
 
 '''
 Initializers
@@ -173,7 +174,7 @@ class EfficientNetB0(object):
         x = self.conv2d(32, 3, 2)(x)
         x = self.bn()(x)
         #x = Swish()(x)
-        x = ReLU()(x)
+        x = ReLU()(x)        
 
         # blocks part        
         for i in range(len(self.params['MB_blocks']['repeats'])):
@@ -207,6 +208,8 @@ def main(argv):
     import os
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
+    channel_first = True
+    input_shape = [224, 224, 3] if channel_first is False else [3, 224, 224]
     model = EfficientNetB0(params = dict({
             'num_classes' : 1000,
             'MB_blocks' : {
@@ -221,7 +224,7 @@ def main(argv):
             'batch_norm_epsilon' : 2e-5,
             'drop_connect_rate' : 0.2,            
             'dropout_rate' : 0.2,
-        })).get_model((224, 224, 3))
+        })).get_model(input_shape)
     model.summary()
     #tf.keras.experimental.export_saved_model(model, flags.FLAGS.save_dir)
     import onnx
